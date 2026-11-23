@@ -1,0 +1,44 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Explainable Email Assistant — Lab 3</title>
+<style>body{font:17px system-ui;background:#edf2f5;color:#192c40;max-width:850px;margin:36px auto;padding:20px}section{background:white;padding:24px;border-radius:14px;margin:18px 0}label{display:block;margin:12px 0}input,textarea,select{font:inherit;padding:9px;box-sizing:border-box;max-width:100%}input,textarea{width:100%}button{font:inherit;padding:10px 16px;margin:5px;border:1px solid #58738a;border-radius:8px;cursor:pointer}button:focus-visible{outline:3px solid #d78800}blockquote{border-left:4px solid #517c99;padding-left:15px}.badge{font-size:24px;font-weight:bold}#status{min-height:24px}</style>
+<h1>Explainable Email Assistant</h1><p>Offline teaching prototype • fictional messages • deterministic rules</p><p>Ready offline. Open this file directly; no server or Python is required.</p><section><h2>1. Inspect a message</h2><button id="a">Load standard example</button><button id="b">Load problem example</button>
+<label>Subject <input id="subject"></label><label>Email text <textarea id="body" rows="3"></textarea></label>
+<label>Attending / relevant? <select id="participation"><option value="unknown">Unknown</option><option value="yes">Yes</option><option value="no">No</option></select></label>
+<label>Rule version <select id="version"><option value="revised">Revised</option><option value="baseline">Baseline (reproduce problem)</option></select></label><button id="analyse">Suggest priority</button></section>
+<section><h2>2. Check the suggestion</h2><div id="result" aria-live="polite">Load an example and request a suggestion.</div><div id="controls" hidden><button id="keep">Keep suggestion</button><button id="normal">Change to Normal</button><button id="high">Change to High</button><button id="undo" disabled>Undo change</button></div><p id="status" role="status"></p></section>
+<p>No mailbox or calendar access. Quotes show matching text, not proof of importance. Dates are not resolved. Corrections affect this message only; nothing is saved after reload. Preference learning is planned.</p>
+<script>
+const el=id=>document.getElementById(id);let state=null,change=null;
+const examples={A:['Draft feedback needed','Please send feedback by 16:00 today.','yes'],B:['Optional workshop','Optional workshop registration deadline Friday.','unknown']};
+function load(k){[el('subject').value,el('body').value,el('participation').value]=examples[k];state=null;el('controls').hidden=true;el('result').textContent='Example loaded. Request a new suggestion.';el('status').textContent='';el('undo').disabled=true;}
+// Runs in the browser for both file:// and HTTP. No network requests.
+function classify(mail,version='revised'){
+const text=(mail.subject+'. '+mail.body).trim();
+const evidence=text.split(/(?<=[.!?])\s+/).filter(s=>/deadline|by 16:00|closes/i.test(s)).map(s=>s.trim());
+const optional=/optional/i.test(text),participation=mail.participation||'unknown';
+let priority=evidence.length?'High':'Normal',question=null;
+if(version==='revised'){
+if(!mail.body.trim()){priority='Needs review';question='Please provide the email text.';}
+else if(optional&&participation==='unknown'){priority='Needs review';question='Are you attending this optional event?';}
+else if(optional&&participation==='no'){priority='Normal';}
+}
+return {priority,evidence,optional,participation,question,reason:evidence.length?'Deadline phrase detected; relevance still requires your judgement.':'No supported deadline phrase found; review manually.',version,limitation:'Rules only. No calendar, sender verification, date resolution or learned confidence.'};
+}
+async function api(data){
+if(!data.action||data.action==='classify')return classify(data.mail,data.version);
+if(data.action==='correct'){
+if(!['High','Normal'].includes(data.priority))throw Error('Priority must be High or Normal');
+return {priority:data.priority,previous:data.state.priority,confirmed:'Priority changed for this email only. Undo is available.'};
+}
+if(data.action==='undo')return {priority:data.correction.previous};
+throw Error('Unknown action');
+}
+function render(){const box=el('result');box.replaceChildren();const badge=document.createElement('p');badge.className='badge';badge.textContent=change ? 'Your priority: '+state.priority+' (system suggested '+change.original+')' : 'Suggested: '+state.priority;box.append(badge);for(const t of [state.reason,...state.evidence.map(x=>'Quoted evidence: “'+x+'”'),state.question,state.limitation].filter(Boolean)){const p=document.createElement('p');p.textContent=t;box.append(p);}el('controls').hidden=false;}
+async function run(fn){try{await fn();}catch(e){el('status').textContent='Unable to complete: '+e.message;}}
+el('a').onclick=()=>load('A');el('b').onclick=()=>load('B');
+el('analyse').onclick=()=>run(async()=>{state=await api({mail:{subject:el('subject').value,body:el('body').value,participation:el('participation').value},version:el('version').value});change=null;render();el('undo').disabled=true;el('status').textContent=state.question?'Answer using the relevance selector, then suggest again.':'Review the evidence before deciding.';});
+for(const [id,p] of [['normal','Normal'],['high','High']])el(id).onclick=()=>run(async()=>{const original=change ? change.original : state.priority;change=await api({action:'correct',state,priority:p});change.original=original;state.priority=change.priority;render();el('status').textContent=change.confirmed;el('undo').disabled=false;});
+el('undo').onclick=()=>run(async()=>{const r=await api({action:'undo',correction:change});state.priority=r.priority;if(state.priority===change.original){change=null;}render();el('status').textContent='Previous priority restored.';el('undo').disabled=true;});
+el('keep').onclick=()=>{el('status').textContent=state.priority==='Needs review'?'Relevance remains unresolved. Please answer the question or choose a priority.':'Suggestion kept for this session.';};
+for(const id of ['subject','body','participation','version']) el(id).oninput=()=>{state=null;change=null;el('controls').hidden=true;el('result').textContent='Input changed. Request a new suggestion.';el('status').textContent='';};
+load('A');
+</script></html>

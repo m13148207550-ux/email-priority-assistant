@@ -1,0 +1,57 @@
+{
+  "A_baseline": {
+    "priority": "High",
+    "evidence": [
+      "Please send feedback by 16:00 today."
+    ],
+    "optional": false,
+    "participation": "yes",
+    "question": null,
+    "reason": "Deadline phrase detected; relevance still requires your judgement.",
+    "version": "baseline",
+    "limitation": "Rules only. No calendar, sender verification, date resolution or learned confidence."
+  },
+  "B_baseline": {
+    "priority": "High",
+    "evidence": [
+      "Optional workshop registration deadline Friday."
+    ],
+    "optional": true,
+    "participation": "unknown",
+    "question": null,
+    "reason": "Deadline phrase detected; relevance still requires your judgement.",
+    "version": "baseline",
+    "limitation": "Rules only. No calendar, sender verification, date resolution or learned confidence."
+  },
+  "B_retest": {
+    "priority": "Needs review",
+    "evidence": [
+      "Optional workshop registration deadline Friday."
+    ],
+    "optional": true,
+    "participation": "unknown",
+    "question": "Are you attending this optional event?",
+    "reason": "Deadline phrase detected; relevance still requires your judgement.",
+    "version": "revised",
+    "limitation": "Rules only. No calendar, sender verification, date resolution or learned confidence."
+  },
+  "B_clarified_no": {
+    "priority": "Normal",
+    "evidence": [
+      "Optional workshop registration deadline Friday."
+    ],
+    "optional": true,
+    "participation": "no",
+    "question": null,
+    "reason": "Deadline phrase detected; relevance still requires your judgement.",
+    "version": "revised",
+    "limitation": "Rules only. No calendar, sender verification, date resolution or learned confidence."
+  },
+  "correction": {
+    "priority": "Normal",
+    "previous": "Needs review",
+    "confirmed": "Priority changed for this email only. Undo is available."
+  },
+  "undo": "Needs review",
+  "scope": "Automated synthetic tests; no human usability study"
+}

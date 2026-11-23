@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "scope": "Automated actual inline JS event logic, network trap and Python parity; not a browser-render or human study",
+  "checks": [
+    "A revised -> High, quoted deadline",
+    "B baseline -> High (preserved defect)",
+    "B revised -> Needs review + question",
+    "Manual correction -> Normal",
+    "Undo -> Needs review",
+    "B clarified no -> Normal",
+    "Empty body -> request text",
+    "Reload A -> High; old correction cleared",
+    "Editing the message invalidates its suggestion",
+    "Four offline results exactly match saved Python evidence"
+  ]
+}
